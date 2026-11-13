@@ -1,4 +1,4 @@
-// FTShare is the only market-data provider. This module is shared by the Worker and collector.
+// FtShare is the only market-data provider. This module is shared by the Worker and collector.
 export const MCP_URL = 'https://market.ft.tech/gateway/mcp';
 export class FTShareError extends Error {
   constructor(message, code = 'upstream_error', details = {}) { super(message); this.code = code; Object.assign(this, details); }

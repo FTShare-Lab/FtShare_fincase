@@ -27,14 +27,14 @@ export function estimateFlow(current, previous, nav, previousNav, splitRatio = 1
 export function fundDaily(fund, shares, navs, calendar) {
   const sm=new Map(shares.filter(r=>r.statistics_period==='日').map(r=>[dateISO(r.trade_date),r]));
   const evidence=fund.flow_evidence||{};
-  // Explicit FTShare PCF recoveries are used only when the normal NAV endpoint is missing.
+  // Explicit FtShare PCF recoveries are used only when the normal NAV endpoint is missing.
   const nm=new Map((evidence.navs||[]).map(r=>[dateISO(r.nav_date),r]));
   for(const row of navs)if(finite(row.unit_nav)&&Number(row.unit_nav)>0)nm.set(dateISO(row.nav_date),row);
   const result={};
   for(let i=1;i<calendar.length;i++){
     const d=calendar[i],p=calendar[i-1];
     if(d<fundStartDate(fund)){result[d]={flow:0,...(d<fund.inception_date?{not_yet_incepted:true}:{not_yet_listed:true})};continue;}
-    // FTShare share-record dates require exchange alignment. SZ needs the next
+    // FtShare share-record dates require exchange alignment. SZ needs the next
     // actual trading-day record; until it exists the attributed day's flow is null.
     const sd=fund.symbol?.endsWith('.SZ')?calendar[i+1]:d;
     const pd=fund.symbol?.endsWith('.SZ')?d:p;

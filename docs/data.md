@@ -1,6 +1,6 @@
 # 数据接入、计算与历史补全
 
-**数据服务：FTShare。** ETF行情、份额、净值、交易日历、公告与PCF通过FTShare接口接入；历史数据保留内部溯源记录。
+**数据服务：FtShare。** ETF行情、份额、净值、交易日历、公告与PCF通过FtShare接口接入；历史数据保留内部溯源记录。
 
 ## 模式
 
@@ -81,7 +81,7 @@ npm run collect -- --end 2026-11-09
 
 | 字段 | 内容 |
 |---|---|
-| `provider` / `sources` | 数据服务为FTShare；字段保留原始快照的内部溯源标签，演示为Demo |
+| `provider` / `sources` | 数据服务为FtShare；字段保留原始快照的内部溯源标签，演示为Demo |
 | `formula` / `flow_policy` | 与本版模型一致的计算版本 |
 | `universe` / `categories` / `calendar` | 成员、12 分类与交易日历 |
 | `history` | 核心 20 只的日期、成交额、指数、净申购与覆盖数 |

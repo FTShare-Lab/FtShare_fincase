@@ -23,7 +23,7 @@ export function createDataService(seed, { fetcher = fetch, now = () => Date.now(
     });
   }
   // ETF-specific quote routes can fail independently of the generic quote routes.
-  // Both return FTShare exchange OHLC/turnover; keep each component independent.
+  // Both return FtShare exchange OHLC/turnover; keep each component independent.
   async function quote(api,primary,backup,args){
     try{return await api.call(primary,args);}catch(first){
       if(['rate_limited','quota_exceeded','not_configured'].includes(first.code))throw first;

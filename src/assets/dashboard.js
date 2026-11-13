@@ -1,6 +1,6 @@
 import { fundStartDate, cumulativeWindow, cumulativeExcess, FLOW_ISSUE_LABELS } from './flow-math.js';
 import { createRadar } from './radar.js';
-/* FTShare data service. Historical provenance remains in the stored snapshot. */
+/* FtShare data service. Historical provenance remains in the stored snapshot. */
 (async function(){
 'use strict';
 const $=id=>document.getElementById(id), charts={}, colors={red:'#d93630',green:'#0aa06e',blue:'#4c7bf3',orange:'#e8862e'};
@@ -202,7 +202,7 @@ function tick(){
 window.addEventListener('ftshare:theme-change',()=>{if(!seed)return;safely('主题切换',renderDaily);if(live)safely('实时图表',renderMinute);safely('累计图表',renderCum);});
 try{
  try{seed=await get('/api/board');save('ftshare-board-v1',seed);}catch(error){seed=saved('ftshare-board-v1');if(!seed?.broad||!seed?.history)throw error;tag('tagUpdate','正在显示上次成功加载的历史数据','warn');}
- const sourceDescription=seed.demo?'演示数据：程序生成的行情与资金样本。':'数据服务：FTShare。净申赎估算按交易日期对齐，缺失日期及原因可展开查看。';
+ const sourceDescription=seed.demo?'演示数据：程序生成的行情与资金样本。':'数据服务：FtShare。净申赎估算按交易日期对齐，缺失日期及原因可展开查看。';
  document.querySelectorAll('footer').forEach(e=>e.textContent=sourceDescription);
  const sourceNote=document.querySelector('#sourcePolicy');if(sourceNote)sourceNote.textContent=seed.demo?'离线生成的固定样本，不调用FtShare；上方接口说明用于真实数据接入。':'行情由云端统一采集，访客只读取共享缓存；日度数据按后台计划归档，成员及分类使用配置快照。';
  renderCloudStatus();

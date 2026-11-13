@@ -1,6 +1,6 @@
 # v0.1.0 开源发布交接
 
-目标仓库：[FTShare-Lab/FtShare_fincase](https://github.com/FTShare-Lab/FtShare_fincase)，分支`main`。以本候选的源码包及逐文件清单作为推送依据；外部推送在用户审查许可后执行。
+目标仓库：[FtShare 开源仓库](https://github.com/FTShare-Lab/FtShare_fincase)，分支`main`。以本候选的源码包及逐文件清单作为推送依据；外部推送在用户审查许可后执行。
 
 ## 本版内容
 
