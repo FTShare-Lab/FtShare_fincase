@@ -6,7 +6,7 @@
 
 面向 A股 ETF 投资者与研究者，将成交雷达、盘中行情、历史对照和日度净申赎估算汇集在同一页面。
 
-[在线体验](https://etf.jtxaionline.com/#radar) · [部署自己的看板](#部署自己的看板) · [了解 FtShare](https://ftai.chat/ftshare)
+[在线体验](https://etf.jtxaionline.com/?utm_source=github&utm_medium=readme&utm_campaign=evergreen&utm_content=readme_demo#radar) · [部署自己的看板](#部署自己的看板) · [了解 FtShare](https://ft-kline-links.zippymarshmallow.chatgpt.site/go/a-share-etf-board/ftshare?utm_source=github&utm_medium=readme&utm_campaign=evergreen&utm_content=readme_product&placement=readme_product)
 
 **v0.1.0 · ETF异动雷达 · 20／60日双基准 · 20只核心ETF · 12类宽基 · 9张分析图表**
 
