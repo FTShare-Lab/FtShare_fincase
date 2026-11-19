@@ -18,6 +18,9 @@ concurrency:
 jobs:
   collect-archive-publish:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cases/etf
     timeout-minutes: 45
     env:
       GH_TOKEN: ${{ github.token }}
@@ -34,10 +37,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: cases/etf/package-lock.json
       - run: npm ci
       - uses: actions/cache/restore@v5
         with:
-          path: .local/ftshare-cache
+          path: cases/etf/.local/ftshare-cache
           key: ftshare-raw-v2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: ftshare-raw-v2-
       - name: Check configuration
@@ -61,13 +65,13 @@ jobs:
       - uses: actions/cache/save@v5
         if: always()
         with:
-          path: .local/ftshare-cache
+          path: cases/etf/.local/ftshare-cache
           key: ftshare-raw-v2-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Save verified test publication
         uses: actions/upload-artifact@v6
         with:
           name: verified-test-publication
-          path: .local/cloud-update/publish-result.json
+          path: cases/etf/.local/cloud-update/publish-result.json
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
@@ -75,6 +79,9 @@ jobs:
     needs: collect-archive-publish
     if: github.ref == 'refs/heads/main' && vars.CLOUDFLARE_FORMAL_AUTO_PUBLISH == 'true' && vars.CLOUDFLARE_FORMAL_PROJECT != '' && vars.CLOUDFLARE_FORMAL_SOURCE_REF != ''
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cases/etf
     timeout-minutes: 15
     permissions:
       contents: read
@@ -99,11 +106,12 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: cases/etf/package-lock.json
       - run: npm ci
       - uses: actions/download-artifact@v7
         with:
           name: verified-test-publication
-          path: .local/cloud-update/test-proof
+          path: cases/etf/.local/cloud-update/test-proof
       - name: Restore exact tested archive
         run: |
           cp .local/cloud-update/test-proof/publish-result.json .local/cloud-update/test-publish-result.json
@@ -116,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: verified-formal-publication
-          path: .local/cloud-update/publish-result.json
+          path: cases/etf/.local/cloud-update/publish-result.json
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 30

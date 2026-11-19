@@ -18,3 +18,7 @@ data/private/
 compose.local.yaml
 
 config/intraday-worker.local.jsonc
+
+# Keep the VIX source outside the public case.
+cases/vix/**
+!cases/vix/README.md

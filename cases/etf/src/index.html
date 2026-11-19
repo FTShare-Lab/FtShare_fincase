@@ -8,6 +8,9 @@
 <meta name="theme-color" content="#f2f6f6">
 <script>try{var m=localStorage.getItem('ftshare-theme')||'system';document.documentElement.dataset.themeMode=m;document.documentElement.dataset.theme=m==='dark'||m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}catch(e){document.documentElement.dataset.theme='light';}</script>
 <link rel="stylesheet" href="style.css">
+<link rel="preload" href="/api/board" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/api/live" as="fetch" crossorigin="anonymous">
+<link rel="modulepreload" href="/assets/chart-loading.js">
 <script src="/echarts.min.js" defer></script>
 <script src="/assets/presentation.js" type="module"></script>
 <script src="/assets/dashboard.js" type="module"></script>
@@ -52,7 +55,12 @@
     <button class="chart-nav-toggle" id="chartNavToggle" type="button" aria-controls="chartNavigation" aria-expanded="false"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h12"/></svg>图表导航</button>
   </nav>
 
-  <section class="signal-section" id="radar" aria-label="ETF 异动雷达" hidden></section>
+  <section class="signal-section" id="radar" aria-label="ETF 异动雷达" hidden><div class="radar-heading"><div><p class="eyebrow">ACTIVITY RADAR</p><h2>ETF 异动雷达<span>观察成交与申赎的变化</span></h2></div><span class="radar-session" id="radarSession">行情加载中</span></div>
+    <div class="radar-board"><div class="radar-summary"><div><span class="radar-overline">20只核心 ETF · 成交活跃度</span><h3 id="radarState">正在读取行情</h3><p id="radarDescription">行情加载中…</p></div><span class="radar-state-badge" id="radarBadge">待齐</span></div>
+    <div class="radar-metrics"><div><span>累计成交额</span><strong id="radarAmount">—</strong><small id="radarAmountNote">—</small></div><div><span>20日 · 同进度倍数</span><strong id="radarMultiple">—</strong><small id="radarMultipleNote">—</small></div><div><span>60日 · 同进度倍数</span><strong id="radarLongMultiple">—</strong><small id="radarLongNote">—</small></div><div><span>近5分钟 · 20日 / 60日</span><strong id="radarBurst">—</strong><small id="radarBurstNote">—</small></div><div><span>上证指数涨跌</span><strong id="radarIndex">—</strong><small>与观察时点对应</small></div></div>
+    <div class="radar-controls"><span class="radar-baselines">20日近期基准 × 60日辅助基准</span><label class="radar-replay">时点回放<input id="radarTime" type="range" min="0" max="240" value="240" aria-label="回放观察时点"><output id="radarTimeLabel">—</output></label><button id="radarFollow" type="button">跟随最新快照</button></div>
+    <details class="radar-rules"><summary>信号规则与样本</summary><div class="radar-rule-inputs"><label>双基准累计阈值<input id="radarCumThreshold" type="number" min="1.1" max="5" step="0.1" value="1.5">倍</label><label>短时放量阈值<input id="radarBurstThreshold" type="number" min="1.2" max="10" step="0.1" value="2">倍</label><label>单只日度净申赎<input id="radarFlowThreshold" type="number" min="1" max="100" step="1" value="10">亿元</label></div><p>20日与60日均与历史同一时点比较，两者累计倍数都达到阈值才提示「持续关注」；仅20日触发为「近期放量」，仅60日触发为「长周期偏高」。短时信号要求5分钟成交额至少5亿元，两个基准连续两个逐分钟窗口都达到阈值才确认。开盘前15个交易分钟仅观察；每个基准须满20／60个完整历史交易日，样本不足不作双基准确认。</p><p id="radarSamples"></p><p>日度净申赎由每日份额与原始净值估算，按归属日期独立展示。以上为测试版初始观察阈值，尚未经过历史回测校准，可自行调整。</p></details></div>
+    <div class="radar-funds-heading"><div><h3>单只 ETF · 日度资金信号</h3><p id="radarFundDates">行情加载中</p></div><div class="radar-fund-counts" id="radarFundCounts"></div></div><div class="radar-funds" id="radarFunds"></div><button class="radar-expand" id="radarExpand" type="button">展开全部20只 ETF</button></section>
   <section class="part" id="part1">
     <h2 class="pt"><button class="section-toggle" type="button" aria-expanded="true" aria-controls="part1Content"><span class="section-number">01</span><span>盘中分钟观测</span><span class="collapse-label">收起</span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 12 5-5 5 5"/></svg></button></h2>
     <div class="section-content" id="part1Content">
@@ -62,7 +70,7 @@
       <span class="tag" id="tagCountdown" style="display:none"></span>
       <span class="tag">云端统一更新 · 每分钟读取缓存</span>
     </div>
-    <section class="chart-wrap"><div id="chart"></div>
+    <section class="chart-wrap"><div id="chart" role="img" aria-label="分钟成交与上证指数" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>分钟成交与上证指数</h3><span class="placeholder-unit">亿元 / 分钟</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chart">
         <summary><span class="source-label">FtShare接口</span> · ETF与指数实时分钟行情<span class="source-action">查看详情</span></summary>
         <div class="source-content">
@@ -77,7 +85,7 @@
 </section>
     <section class="chart-wrap">
       <div class="cum-pick"><select id="cumDate"><option value="">选择对比日期</option></select></div>
-      <div class="chart" id="chartCum"></div>
+      <div class="chart" id="chartCum" role="img" aria-label="核心 ETF 累计成交对比" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>核心 ETF 累计成交对比</h3><span class="placeholder-unit">亿元</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chartCum">
         <summary><span class="source-label">FtShare接口</span> · 当日与历史ETF分钟行情<span class="source-action">查看详情</span></summary>
         <div class="source-content">
@@ -93,7 +101,7 @@
 <div class="subsection-heading"><h3>成交节奏对比</h3><span>20只核心 ETF · 分钟结构</span></div>
     <div class="status"><span class="tag" id="tagCaseLive">正在获取今日分钟行情…</span></div>
     <div class="comparison-grid">
-    <section class="chart-wrap"><div class="chart" id="chartTypCase"></div>
+    <section class="chart-wrap"><div class="chart" id="chartTypCase" role="img" aria-label="放量日分钟成交结构" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>放量日分钟成交结构</h3><span class="placeholder-unit">亿元 / 分钟</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chartTypCase">
         <summary><span class="source-label">数据服务</span> · FtShare金融数据服务<span class="source-action">查看详情</span></summary>
         <div class="source-content"><dl>
@@ -105,7 +113,7 @@
         </dl><p>红色柱形为历史放量日分钟成交额均值；紫线为今日20只ETF分钟成交额，使用左轴亿元/分钟，随盘中行情每60秒刷新。橙线为放量日与常态日均值之差逐分钟累计，单位亿元，对应右轴。历史均值仅使用今日之前的完整分钟与资金样本；放量日按净申购估算超过100亿元筛选，沿用案例日期排除规则。 份额与净值按交易日期对齐，净申赎金额按统一口径估算。</p></div>
       </details>
 </section>
-    <section class="chart-wrap"><div class="chart" id="chartTypNorm"></div>
+    <section class="chart-wrap"><div class="chart" id="chartTypNorm" role="img" aria-label="常态日分钟成交结构" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>常态日分钟成交结构</h3><span class="placeholder-unit">亿元 / 分钟</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chartTypNorm">
         <summary><span class="source-label">数据服务</span> · FtShare金融数据服务<span class="source-action">查看详情</span></summary>
         <div class="source-content"><dl>
@@ -157,7 +165,7 @@
       <span class="tag" id="tagNf">--</span>
     </div>
     <div class="comparison-grid">
-    <section class="chart-wrap"><div class="chart" id="chartAmt"></div>
+    <section class="chart-wrap"><div class="chart" id="chartAmt" role="img" aria-label="放量日与近期交易日 · 成交额" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>放量日与近期交易日 · 成交额</h3><span class="placeholder-unit">亿元</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chartAmt">
         <summary><span class="source-label">数据服务</span> · FtShare金融数据服务<span class="source-action">查看详情</span></summary>
         <div class="source-content"><dl>
@@ -169,7 +177,7 @@
         </dl><p>柱高为成交额；份额和净值只用于筛选放量日期，沿用本看板的案例日期排除规则。 份额与净值按交易日期对齐，净申赎金额按统一口径估算。</p></div>
       </details>
 </section>
-    <section class="chart-wrap"><div class="chart" id="chartNf"></div>
+    <section class="chart-wrap"><div class="chart" id="chartNf" role="img" aria-label="放量日与近期交易日 · 净申购" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>放量日与近期交易日 · 净申购</h3><span class="placeholder-unit">亿元</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chartNf">
         <summary><span class="source-label">数据服务</span> · FtShare金融数据服务<span class="source-action">查看详情</span></summary>
         <div class="source-content"><dl>
@@ -190,7 +198,7 @@
     <h2 class="pt"><button class="section-toggle" type="button" aria-expanded="true" aria-controls="part3Content"><span class="section-number">03</span><span>日度资金全景</span><span class="collapse-label">收起</span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 12 5-5 5 5"/></svg></button></h2>
     <div class="section-content" id="part3Content">
     <div class="sub data-note" id="dailyRange"></div>
-    <section class="chart-wrap"><div class="chart" id="chartDAmt"></div>
+    <section class="chart-wrap"><div class="chart" id="chartDAmt" role="img" aria-label="历史成交额与上证指数" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>历史成交额与上证指数</h3><span class="placeholder-unit">亿元</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chartDAmt">
         <summary><span class="source-label">FtShare接口</span> · ETF日成交额与指数日线 / 分钟行情<span class="source-action">查看详情</span></summary>
         <div class="source-content">
@@ -204,7 +212,7 @@
         </div>
       </details>
 </section>
-    <section class="chart-wrap"><div class="chart" id="chartDNf"></div>
+    <section class="chart-wrap"><div class="chart" id="chartDNf" role="img" aria-label="历史净申购与上证指数" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>历史净申购与上证指数</h3><span class="placeholder-unit">亿元</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <details class="chart-source" data-source-for="chartDNf">
         <summary><span class="source-label">数据服务</span> · FtShare金融数据服务<span class="source-action">查看详情</span></summary>
         <div class="source-content"><dl>
@@ -226,7 +234,7 @@
     </div>
     <div class="coverage-grid" id="broadCoverage" aria-live="polite"></div>
     <p class="coverage-note" id="broadCumulativeNote" aria-live="polite"></p>
-    <section class="chart-wrap"><div class="chart" id="chartBroad"></div>
+    <section class="chart-wrap"><div class="chart" id="chartBroad" role="img" aria-label="宽基日度净流入与累计" aria-busy="true"><div class="chart-placeholder" aria-hidden="true"><h3>宽基日度净流入与累计</h3><span class="placeholder-unit">亿元</span><div class="placeholder-grid"></div></div><div class="chart-loading-state" role="status"><span class="chart-loading-ring" aria-hidden="true"></span><span>图表加载中…</span></div></div>
       <p class="data-note" id="broadIndexNote"></p>
       <details class="chart-source" data-source-for="chartBroad">
         <summary><span class="source-label">数据服务</span> · FtShare金融数据服务<span class="source-action">查看详情</span></summary>

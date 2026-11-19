@@ -11,9 +11,10 @@ export async function preparePages(root) {
   await rm(output, { recursive: true, force: true });
   await mkdir(resolve(output, 'assets'), { recursive: true });
   await mkdir(resolve(output, 'licenses'), { recursive: true });
-  for (const name of ['index.html', 'style.css', 'echarts.min.js', 'assets/dashboard.js', 'assets/flow-math.js', 'assets/radar.js', 'assets/radar-math.js', 'assets/brush.js', 'assets/presentation.js', 'assets/ftai-mark.svg']) {
+  for (const name of ['index.html', 'style.css', 'echarts.min.js', 'assets/chart-loading.js', 'assets/dashboard.js', 'assets/flow-math.js', 'assets/radar.js', 'assets/radar-math.js', 'assets/brush.js', 'assets/presentation.js', 'assets/ftai-mark.svg']) {
     if (name === 'index.html') {
-      const body = (await readFile(resolve(root, 'src', name), 'utf8')).replace('data-data-mode="demo"', 'data-data-mode="' + metadata.mode + '"').replace('data-radar="off"', 'data-radar="' + (metadata.radar ? 'on' : 'off') + '"');
+      let body = (await readFile(resolve(root, 'src', name), 'utf8')).replace('data-data-mode="demo"', 'data-data-mode="' + metadata.mode + '"').replace('data-radar="off"', 'data-radar="' + (metadata.radar ? 'on' : 'off') + '"');
+      if(metadata.radar)body=body.replace('aria-label="ETF 异动雷达" hidden','aria-label="ETF 异动雷达"');
       await writeFile(resolve(output, name), body);
     } else await copyFile(resolve(root, 'src', name), resolve(output, name));
   }

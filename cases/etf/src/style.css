@@ -39,3 +39,14 @@ button{border:1px solid var(--line);border-radius:8px;padding:7px 11px;backgroun
 @media(max-width:600px){.radar-funds{grid-template-columns:1fr}.radar-heading h2{font-size:23px}.radar-state-badge{padding:7px 10px;font-size:10px}.radar-summary{gap:10px}.radar-summary p{font-size:11px}.radar-fund{padding:18px}.radar-metrics>div{padding:0 12px}.radar-metrics strong{font-size:26px}.radar-heading{align-items:flex-start}.radar-session{margin-top:3px}}
 
 .radar-baselines{font-size:11px;color:var(--muted)}#radarBurst{font-size:23px;letter-spacing:-.5px}@media(max-width:850px){.radar-metrics>div:nth-child(even){border:0}.radar-metrics>div:last-child{grid-column:1/-1}.radar-baselines{flex-basis:100%}}
+
+/* Chart frames are part of the initial HTML, including while data is pending. */
+.chart,#chart{position:relative}
+.chart-placeholder{position:absolute;inset:0;color:var(--muted);pointer-events:none}
+.chart-placeholder h3{position:absolute;top:6px;left:8px;color:var(--text);font-size:14px;font-weight:600;line-height:20px}
+.placeholder-unit{position:absolute;top:77px;left:26px;font-size:11px}
+.placeholder-grid{position:absolute;inset:100px 26px 54px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);background:repeating-linear-gradient(to bottom,var(--line) 0,var(--line) 1px,transparent 1px,transparent 33.333%)}
+.chart-loading-state{position:absolute;inset:100px 0 54px;display:flex;justify-content:center;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.chart-loading-ring{width:17px;height:17px;flex-shrink:0;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:chart-loading-spin .9s linear infinite}
+@keyframes chart-loading-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.chart-loading-ring{animation:none}}

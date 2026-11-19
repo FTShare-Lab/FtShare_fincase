@@ -10,7 +10,7 @@ test('Pages package separates client assets, server entrypoint and private deplo
   const root = await mkdtemp(resolve(tmpdir(), 'ftshare-pages-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const source = fileURLToPath(new URL('../', import.meta.url));
-  const files = ['src/index.html','src/style.css','src/echarts.min.js','src/assets/dashboard.js','src/assets/flow-math.js','src/assets/radar.js','src/assets/radar-math.js','src/assets/brush.js','src/assets/presentation.js','src/assets/ftai-mark.svg','LICENSE','third_party/echarts/LICENSE','third_party/echarts/NOTICE','third_party/echarts/licenses/LICENSE-d3'];
+  const files = ['src/index.html','src/style.css','src/echarts.min.js','src/assets/chart-loading.js','src/assets/dashboard.js','src/assets/flow-math.js','src/assets/radar.js','src/assets/radar-math.js','src/assets/brush.js','src/assets/presentation.js','src/assets/ftai-mark.svg','LICENSE','third_party/echarts/LICENSE','third_party/echarts/NOTICE','third_party/echarts/licenses/LICENSE-d3'];
   for (const name of files) { await mkdir(resolve(root, name, '..'), { recursive: true }); await copyFile(resolve(source, name), resolve(root, name)); }
   await mkdir(resolve(root, 'dist/server'), { recursive: true });
   await writeFile(resolve(root, 'dist/metadata.json'), JSON.stringify({ mode: 'live', source_date: '2026-11-10' }));

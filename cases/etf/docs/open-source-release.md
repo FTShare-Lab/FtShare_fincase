@@ -1,6 +1,6 @@
 # v0.1.0 开源发布交接
 
-目标仓库：[FtShare 开源仓库](https://github.com/FTShare-Lab/FtShare_fincase)，分支`main`。以本候选的源码包及逐文件清单作为推送依据；外部推送在用户审查许可后执行。
+目标仓库：[FtShare 开源仓库](https://github.com/FTShare-Lab/FtShare_fincase)，分支`main`。以ETF 案例的源码包及逐文件清单作为推送依据；外部推送在用户审查许可后执行。
 
 ## 本版内容
 
@@ -22,7 +22,7 @@ v0.1.0采用后台采集、共享缓存和只读网页。部署者配置自己�
 | 可选采集工作流 | `docs/examples/cloud-test-update.yml` |
 | 许可与贡献 | [MIT](../LICENSE)、[第三方声明](../THIRD_PARTY_NOTICES.md)、[贡献](../CONTRIBUTING.md) |
 
-公开文件由`scripts/lib/release.mjs`生成允许清单。运行数据、凭据、原始响应和部署记录保存在私有运行环境。公开仓库从本候选建立新历史。
+公开文件由`scripts/lib/release.mjs`生成允许清单。运行数据、凭据、原始响应和部署记录保存在私有运行环境。本版延续公开仓库历史，ETF 案例目录为 `cases/etf`。
 
 ## 推送前检查
 
@@ -41,7 +41,7 @@ npm run release:archive
 ## 审查后执行
 
 1. 再次核对远端状态、版本和逐文件SHA-256。
-2. 将本候选源码作为目标仓库的初始提交推送。
+2. 将ETF 案例源码作为目标仓库的初始提交推送。
 3. 核对GitHub展示、README图片与链接、CI结果。
 
 网站部署、域名操作和数据归档按各自的发布流程执行。

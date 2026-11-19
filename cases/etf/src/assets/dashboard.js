@@ -1,3 +1,4 @@
+import {createChartQueue,showChartError} from './chart-loading.js';
 import { fundStartDate, cumulativeWindow, cumulativeExcess, FLOW_ISSUE_LABELS } from './flow-math.js';
 import { createRadar } from './radar.js';
 /* FtShare data service. Historical provenance remains in the stored snapshot. */
@@ -15,6 +16,8 @@ const storageKey=key=>'ftshare-oss:'+document.documentElement.dataset.dataMode+'
 let broadSelection=null,broadResetZoom=false,broadRangeInitialized=false;
 let seed,live,loading=false,remaining=1,picked='',brushLoaded=false;
 async function get(path){const r=await fetch(path,{cache:'default',signal:AbortSignal.timeout(30000)});const d=await r.json();if(!r.ok)throw new Error(d.error||'数据暂不可用');if(document.documentElement.dataset.dataMode==='demo'?d.provider!=='Demo':!['FTShare','FTShare+PublicSources'].includes(d.provider))throw new Error('数据来源校验失败');return d;}
+const initialBoard=get('/api/board');
+const initialLive=get('/api/live').then(value=>({value}),error=>({error}));
 function tag(id,text,kind=''){const e=$(id);if(e){e.textContent=text;e.className='tag '+kind;}}
 function saved(key){try{return JSON.parse(localStorage.getItem(storageKey(key))||'null');}catch{return null;}}
 function save(key,value){try{localStorage.setItem(storageKey(key),JSON.stringify(value));}catch{}}
@@ -59,7 +62,20 @@ function renderOverview(){
 function base(title,dates,yName='亿元'){
  return {animation:false,title:{text:title,left:8,top:6,padding:0,textStyle:{fontSize:14}},grid:{top:100,left:16,right:16,bottom:54,containLabel:true},legend:{top:40,left:'center',type:'scroll'},tooltip:{trigger:'axis',confine:true,formatter:ps=>[ps[0]?.axisValue,...ps.map(p=>escape(p.seriesName)+'：'+sign(p.value,2))].join('<br>')},xAxis:{type:'category',data:dates,axisLabel:{hideOverlap:true}},yAxis:{type:'value',name:yName,scale:true},dataZoom:[{type:'inside',moveOnMouseMove:false},{type:'slider',height:16,bottom:12}],series:[]};
 }
-function draw(id,option){const e=$(id);if(!e)return;return safely(id,()=>{const previous=charts[id]?.getOption()?.dataZoom;const c=charts[id]||(charts[id]=echarts.init(e));if(previous&&option.dataZoom&&!(id==='chartBroad'&&broadResetZoom))option.dataZoom.forEach((z,i)=>{if(previous[i]){z.start=previous[i].start;z.end=previous[i].end;}});c.setOption(styleChart(option),{notMerge:true});return c;});}
+const chartQueue=createChartQueue({
+ elements:[...document.querySelectorAll('.chart-wrap>.chart,.chart-wrap>#chart')],
+ onVisible:id=>{const c=charts[id];if(c&&c.getDom().clientWidth&&c.getDom().clientHeight)c.resize();},
+ onError:(id)=>{showChartError($(id),'图表暂不可用');console.error(id+'暂不可用');},
+ render(id,option,resetZoom){
+  const e=$(id),previous=charts[id]?.getOption()?.dataZoom;
+  if(!charts[id]){e.setAttribute('aria-busy','false');e.replaceChildren();charts[id]=echarts.init(e);}
+  const c=charts[id];if(c.getWidth()!==e.clientWidth||c.getHeight()!==e.clientHeight)c.resize();
+  if(previous&&option.dataZoom&&!resetZoom)option.dataZoom.forEach((z,i)=>{if(previous[i]){z.start=previous[i].start;z.end=previous[i].end;}});
+  c.setOption(styleChart(option),{notMerge:true});
+ }
+});
+function draw(id,option){chartQueue.set(id,option,id==='chartBroad'&&broadResetZoom);}
+
 function line(name,data,color,axis=0,dashed=false){return {name,type:'line',data,yAxisIndex:axis,connectNulls:false,showSymbol:false,lineStyle:{width:1.8,color,type:dashed?'dashed':'solid'},itemStyle:{color}};}
 function bars(name,data,color=colors.blue){return {name,type:'bar',itemStyle:{color:color==='flow'?colors.red:color},data:data.map(v=>({value:v,itemStyle:{color:color==='flow'?(v<0?colors.green:colors.red):color}}))};}
 function addIndex(o,idx){o.yAxis=[{type:'value',name:'亿元',scale:true},{type:'value',name:'上证指数（点）',scale:true,splitLine:{show:false}}];o.series.push(line('上证综指',idx,colors.orange,1));return o;}
@@ -185,13 +201,14 @@ function renderCloudStatus(){
  const e=$('cloudUpdateStatus');e.hidden=false;const date=seed.cloud_update?.collected_at;
  e.textContent='日度数据每日 08:00 / 12:30 / 18:00 更新；盘中行情每分钟统一采集。'+(date?' 最近成功归档：'+new Date(date).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}):'');
 }
-async function refresh(){
+async function refresh(firstRead=null){
  if(loading)return;loading=true;
  try{
-  if(!seed.demo){const health=await get('/api/health');if(health.history_built_at!==seed.built_at){seed=await get('/api/board');save('ftshare-board-v1',seed);renderCloudStatus();renderDaily();for(const d of Object.keys(seed.minutes).sort().reverse())if(!$('cumDate').querySelector('option[value="'+d+'"]')){const op=document.createElement('option');op.value=d;op.textContent=d;$('cumDate').insertBefore(op,$('cumDate').options[1]||null);}}}
-  live=combineLive(await get('/api/live'),live);save('ftshare-last-live-v1',live);safely('当日记录',mergeLiveHistory);safely('实时图表',renderMinute);safely('日度图表',renderDaily);if(radar)safely('异动雷达',()=>radar.render(seed,live));
+  if(!seed.demo&&!firstRead){const health=await get('/api/health');if(health.history_built_at!==seed.built_at){seed=await get('/api/board');save('ftshare-board-v1',seed);renderCloudStatus();renderDaily();for(const d of Object.keys(seed.minutes).sort().reverse())if(!$('cumDate').querySelector('option[value="'+d+'"]')){const op=document.createElement('option');op.value=d;op.textContent=d;$('cumDate').insertBefore(op,$('cumDate').options[1]||null);}}}
+  const first=firstRead?await firstRead:null;if(first?.error)throw first.error;
+  live=combineLive(first?first.value:await get('/api/live'),live);save('ftshare-last-live-v1',live);safely('当日记录',mergeLiveHistory);safely('实时图表',renderMinute);safely('日度图表',renderDaily);if(radar)safely('异动雷达',()=>radar.render(seed,live));
   if(live.cache?.last_error&&live.cache.last_error!=='partial_upstream')tag('tagUpdate','云端采集暂缓；行情保留至 '+live.date+' '+(live.last_complete_minute||'--'),'warn');
- }catch(e){tag('tagUpdate',live?'缓存读取暂缓；保留 '+live.date+' '+(live.last_complete_minute||'')+' 的成功数据':'后台行情尚未就绪；历史图表可继续查看','warn');}
+ }catch(e){if(!live&&!chartQueue.has('chart'))showChartError($('chart'),'分时行情暂未就绪');tag('tagUpdate',live?'缓存读取暂缓；保留 '+live.date+' '+(live.last_complete_minute||'')+' 的成功数据':'后台行情尚未就绪；历史图表可继续查看','warn');}
  finally{loading=false;}
 }
 function tick(){
@@ -201,7 +218,7 @@ function tick(){
 }
 window.addEventListener('ftshare:theme-change',()=>{if(!seed)return;safely('主题切换',renderDaily);if(live)safely('实时图表',renderMinute);safely('累计图表',renderCum);});
 try{
- try{seed=await get('/api/board');save('ftshare-board-v1',seed);}catch(error){seed=saved('ftshare-board-v1');if(!seed?.broad||!seed?.history)throw error;tag('tagUpdate','正在显示上次成功加载的历史数据','warn');}
+ try{seed=await initialBoard;save('ftshare-board-v1',seed);}catch(error){seed=saved('ftshare-board-v1');if(!seed?.broad||!seed?.history)throw error;tag('tagUpdate','正在显示上次成功加载的历史数据','warn');}
  const sourceDescription=seed.demo?'演示数据：程序生成的行情与资金样本。':'数据服务：FtShare。净申赎估算按交易日期对齐，缺失日期及原因可展开查看。';
  document.querySelectorAll('footer').forEach(e=>e.textContent=sourceDescription);
  const sourceNote=document.querySelector('#sourcePolicy');if(sourceNote)sourceNote.textContent=seed.demo?'离线生成的固定样本，不调用FtShare；上方接口说明用于真实数据接入。':'行情由云端统一采集，访客只读取共享缓存；日度数据按后台计划归档，成员及分类使用配置快照。';
@@ -215,9 +232,9 @@ try{
  const lastLive=saved('ftshare-last-live-v1');if(lastLive?.provider===(seed.demo?'Demo':'FTShare')&&lastLive?.slots?.length===seed.minute_slots.length){live=lastLive;safely('已保存行情',renderMinute);tag('tagUpdate','已保存行情 '+live.date+' '+(live.last_complete_minute||'')+'；正在更新','warn');}
  const dates=Object.keys(seed.minutes).sort().reverse();for(const d of dates){const op=document.createElement('option');op.value=d;op.textContent=d;$('cumDate').appendChild(op);}picked=dates[0]||'';$('cumDate').value=picked;renderCum();
  $('cumDate').addEventListener('change',async()=>{picked=$('cumDate').value;if(picked&&!seed.minutes[picked]){try{seed.minutes[picked]=await get('/api/cumulative?date='+picked);}catch(e){tag('tagUpdate',e.message,'warn');}}renderCum();});
- window.addEventListener('resize',()=>Object.values(charts).forEach(c=>c.resize()));
- await refresh();window.__ETF_APP_READY=true;
+ let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{Object.values(charts).forEach(c=>{if(c.getDom().clientWidth&&c.getDom().clientHeight)c.resize();});chartQueue.refresh();},100);});
+ await refresh(initialLive);window.__ETF_APP_READY=true;
  const s=document.createElement('script');s.src='/assets/brush.js';document.head.appendChild(s);brushLoaded=true;
  remaining=60;if(!seed.demo)setInterval(tick,1000);else tag('tagCountdown','离线演示 · 固定样本');
-}catch(e){tag('tagUpdate','看板加载失败：'+e.message,'err');console.error('Dashboard initialization failed');}
+}catch(e){for(const el of document.querySelectorAll('.chart-wrap>.chart,.chart-wrap>#chart'))showChartError(el);tag('tagUpdate','行情加载失败，请重新加载','err');console.error('Dashboard initialization failed');}
 })();

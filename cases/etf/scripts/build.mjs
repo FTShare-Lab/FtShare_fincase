@@ -13,10 +13,11 @@ let seed;
 try { seed = validateSeed(JSON.parse(await readFile(file, 'utf8')), mode); }
 catch (error) { throw new Error('Cannot build ' + mode + ' data. See docs/data.md. ' + error.message); }
 const assets = {};
-for (const [path, type] of [['index.html','text/html'],['style.css','text/css'],['echarts.min.js','text/javascript'],['assets/flow-math.js','text/javascript'],['assets/radar-math.js','text/javascript'],['assets/radar.js','text/javascript'],['assets/dashboard.js','text/javascript'],['assets/presentation.js','text/javascript'],['assets/brush.js','text/javascript'],['assets/ftai-mark.svg','image/svg+xml']]) {
+for (const [path, type] of [['index.html','text/html'],['style.css','text/css'],['echarts.min.js','text/javascript'],['assets/chart-loading.js','text/javascript'],['assets/flow-math.js','text/javascript'],['assets/radar-math.js','text/javascript'],['assets/radar.js','text/javascript'],['assets/dashboard.js','text/javascript'],['assets/presentation.js','text/javascript'],['assets/brush.js','text/javascript'],['assets/ftai-mark.svg','image/svg+xml']]) {
   let body = await readFile(resolve(root, 'src', path), 'utf8');
   if (path === 'index.html') body = body.replace('data-data-mode="demo"', 'data-data-mode="' + mode + '"');
   if (path === 'index.html') body = body.replace('data-radar="off"', 'data-radar="' + (process.env.ENABLE_RADAR === '1' ? 'on' : 'off') + '"');
+  if (path === 'index.html' && process.env.ENABLE_RADAR === '1') body = body.replace('aria-label="ETF 异动雷达" hidden','aria-label="ETF 异动雷达"');
   assets['/' + path] = { body, type: type + '; charset=utf-8' };
 }
 for (const [url, file] of [['/licenses/MIT.txt','LICENSE'],['/licenses/echarts-LICENSE.txt','third_party/echarts/LICENSE'],['/licenses/echarts-NOTICE.txt','third_party/echarts/NOTICE'],['/licenses/d3-LICENSE.txt','third_party/echarts/licenses/LICENSE-d3']]) assets[url] = { body: await readFile(resolve(root, file), 'utf8'), type: 'text/plain; charset=utf-8' };
