@@ -1,11 +1,13 @@
 # 贡献说明
 
-需要 Node.js 24+。先运行：
+外部用户可先 Fork，再从自己的分支向原仓库 `main` 提交 PR，无需原仓库写权限。完整的网页编辑、本地命令和 PR 填写步骤见 [仓库贡献流程](../../CONTRIBUTING.md)。本页补充 ETF 案例的开发要求。
+
+需要 Node.js 24+。以下命令在 `cases/etf/` 目录执行：
 
 ```sh
 npm ci
 npm test
-npm run build
+npm run build:pages
 npm run validate
 npm run check:release
 ```
