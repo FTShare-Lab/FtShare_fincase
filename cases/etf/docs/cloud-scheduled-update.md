@@ -47,7 +47,7 @@ npx wrangler deploy --config config/intraday-worker.local.jsonc
 
 ## 日度私有归档
 
-流程模板见 [`examples/cloud-test-update.yml`](examples/cloud-test-update.yml)。真实归档存入私有运行仓库；公开源码仓库运行模拟数据CI，采集流程按模板配置。
+流程模板见 [`examples/cloud-test-update.yml`](examples/cloud-test-update.yml)。在私有运行仓库保留 `cases/etf` 目录结构，将该模板放到仓库根目录的 `.github/workflows/cloud-test-update.yml`。模板的运行目录、依赖缓存和附件路径已按此结构设置。真实归档存入私有运行仓库；公开源码仓库运行模拟数据CI，采集流程按模板配置。
 
 配置以下Secrets和Variables：
 

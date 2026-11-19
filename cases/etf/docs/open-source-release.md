@@ -1,5 +1,7 @@
 # v0.1.0 开源发布交接
 
+从仓库根目录先执行 `cd cases/etf`，本文命令均在该目录运行；使用源码包时，直接在解压目录运行。
+
 目标仓库：[FtShare 开源仓库](https://github.com/FTShare-Lab/FtShare_fincase)，分支`main`。以ETF 案例的源码包及逐文件清单作为推送依据；外部推送在用户审查许可后执行。
 
 ## 本版内容
@@ -18,7 +20,7 @@ v0.1.0采用后台采集、共享缓存和只读网页。部署者配置自己�
 | 数据结构、净申赎计算与雷达要求 | [数据文档](data.md)、[雷达规则](radar-preview.md) |
 | Node、Docker、Cloudflare、Mac | [部署指南](deployment.md) |
 | 后台采集、KV、定时归档及回退 | [云端配置](cloud-scheduled-update.md) |
-| 模拟数据CI、计算与缓存测试 | `.github/workflows/ci.yml`、`tests/` |
+| 模拟数据CI、计算与缓存测试 | 仓库根目录 `.github/workflows/ci.yml`、案例目录 `tests/` |
 | 可选采集工作流 | `docs/examples/cloud-test-update.yml` |
 | 许可与贡献 | [MIT](../LICENSE)、[第三方声明](../THIRD_PARTY_NOTICES.md)、[贡献](../CONTRIBUTING.md) |
 

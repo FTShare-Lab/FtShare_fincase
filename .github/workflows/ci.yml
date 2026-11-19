@@ -33,3 +33,4 @@ jobs:
         with:
           node-version: 24
       - run: node scripts/check-release.mjs
+      - run: node scripts/check-docs.mjs
